@@ -1,0 +1,7 @@
+ofxKinect
+ofxFX
+ofxGifDecoder
+ofxMidi
+ofxOpenGLContextScope
+ofxPostProcessing
+ofxThreadedGIFLoader
