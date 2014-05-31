@@ -33,6 +33,7 @@ void ContentsManager::update(ofEventArgs &e) {
         vector<ofFile> files = dir.getFiles();
 
         // cleaning
+        int cnt = 0;
         for (auto gif = gifs.begin(); gif != gifs.end();) {
             bool found = false;
             for (auto file = files.begin(); file != files.end(); file++) {
@@ -44,29 +45,19 @@ void ContentsManager::update(ofEventArgs &e) {
                 }
             }
             
-            if(!found) {
-                gif = gifs.erase(gif);
+            if(!found && !(gif->isLocked)) {
+                gif->isDeleted = true;
             } else {
-                ++gif;
+                cnt++;
             }
-        }
-        for (auto img = imgs.begin(); img != imgs.end(); img++) {
-            for (auto file = files.begin(); file != files.end(); file++) {
-                // alive!
-                if (img->first == file->path()) {
-                    file = files.erase(file);
-                    continue;
-                }
-            }
-            imgs.erase(img);
+            ++gif;
         }
         
         // adding
-        int cnt = 0;
         for (auto file = files.begin(); file != files.end(); file++) {
             if (file->getExtension() == "gif") {
                 //gif here
-                if (gifs.size()+cnt < maxContentsNum) {
+                if (cnt < maxContentsNum) {
                     ofLogNotice("Loading Request") << file->path();
                     gifloader.loadFromDisk(file->path());
                     cnt++;
@@ -84,7 +75,15 @@ void ContentsManager::gifLoaded(ofxGifLoadedEvent &e) {
     ofLogNotice() << "gif loaded!" << e.path;
     GifContent gc;
     gc.setup(e.path, e.gif);
-    gifs.push_back(gc);
+    if (gifs.size() < maxContentsNum) {
+        gifs.push_back(gc);
+    } else {
+        for (auto gif = gifs.begin(); gif != gifs.end(); gif++) {
+            if (gif->isDeleted) {
+                gifs.at(distance(gifs.begin(), gif)) = gc;
+            }
+        }
+    }
 }
 
 void ContentsManager::mousePressed(ofMouseEventArgs &e) {
@@ -102,7 +101,17 @@ GifContent::GifContent() {
     interfacePoint = ofPoint(0, 0);
     projectionPoint = ofPoint(0, 0);
     playScale = 2;
+    value = 0;
+    displayScale = 1.0;
+    isLocked = false;
+    isDeleted = false;
     ofLogNotice() << "hello";
+}
+
+void GifContent::reset() {
+    playScale = 2;
+    value = 0;
+    displayScale = 1.0;
 }
 
 void GifContent::setup(string pathName, ofxThreadedGifFile &gifFile) {
@@ -158,6 +167,7 @@ void GifContent::drawBackyard(int x, int y) {
                 break;
         }
         ContentsManager::font.drawString(str, r.getRight()+4, r.getCenter().y+10);
+        ContentsManager::font.drawString(ofToString(displayScale, 3), x, y+120);
         if (selected) {
             ofSetColor(220);
             ofLine(r.getTopLeft(), r.getBottomRight());
@@ -165,12 +175,19 @@ void GifContent::drawBackyard(int x, int y) {
         }
     }
     
-    ofPushMatrix();
-    ofSetColor(255);
     ofFill();
-    ofRect(x, y, 100, 100);
-    gif.drawFrame(0, x+1, y+1, 98, 98);
-    ofPopMatrix();
+    if (isLocked) {
+        ofSetColor(255, 100, 100);
+    } else {
+        ofSetColor(255);
+    }
+    ofRect(x, y, 100, 100); // edge
+    
+    ofSetColor(255);
+    ofRect(x+106, y+100-value/127.0*100, 10, value/127.0*100);
+    if (!isDeleted) {
+        gif.drawFrame(0, x+1, y+1, 98, 98);
+    }
     x++;
 }
 

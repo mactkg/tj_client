@@ -9,10 +9,12 @@
 #include "ofxBpm.h"
 #include "ofxSecondWindow.h"
 #include "ContentsManager.h"
-//#include "ofxOpenGLContextScope.h"
+#include "ofxPostGlitch.h"
 #include "ofMain.h"
 
 //#define USE_KINECT
+
+const ofColor TUMBLR_BACKGROUND(8, 77, 106);
 
 class ofApp : public ofBaseApp, public ofxMidiListener {
 
@@ -35,6 +37,10 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
     void gifLoaded(ofxGifLoadedEvent &e);
     void newMidiMessage(ofxMidiMessage &msg);
     
+    bool goGlitch[17];
+    
+    ofFbo fbo;
+    
     ofxSecondWindow projector;
     ofxThreadedGIFLoader gifLoader;
     ofxBpm bpm;
@@ -43,4 +49,5 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
     ofTrueTypeFont font;
     ContentsManager cm;
     ofxMidiIn midiIn;
+    ofxPostGlitch glitch;
 };

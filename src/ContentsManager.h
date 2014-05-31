@@ -34,6 +34,12 @@ public:
     float getPlayScale() { return playScale; };
     
     void mousePressed(ofMouseEventArgs &e);
+    void reset();
+    
+    bool isLocked;
+    bool isDeleted;
+    int value;
+    float displayScale;
     
 private:
     string path;
