@@ -16,7 +16,8 @@ void ContentsManager::setup(int maxContentsNum, int interval) {
     lastUpdateTime = ofGetElapsedTimeMillis();
     
     ContentsManager::font.loadFont("fonts/Futura.ttc", 16);
-    
+   
+    // Listener
     ofAddListener(ofEvents().update, this, &ContentsManager::update);
     ofAddListener(ofEvents().mousePressed, this, &ContentsManager::mousePressed);
     ofAddListener(ofxGifLoadedEvent::events, this, &ContentsManager::gifLoaded);
@@ -101,7 +102,7 @@ GifContent::GifContent() {
     interfacePoint = ofPoint(0, 0);
     projectionPoint = ofPoint(0, 0);
     playScale = 2;
-    value = 0;
+    value = 180;
     displayScale = 1.0;
     isLocked = false;
     isDeleted = false;

@@ -71,7 +71,7 @@ public:
     vector<GifContent> gifs;
     //std::map<string, GifContent> gifs;
     std::map<string, ofImage> imgs;
-    ofxThreadedGIFLoader gifloader;
+    ofxThreadedGifLoader gifloader;
     static ofTrueTypeFont font;
 
 private:

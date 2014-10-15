@@ -10,9 +10,11 @@
 #include "ofxSecondWindow.h"
 #include "ContentsManager.h"
 #include "ofxPostGlitch.h"
+#include "ofxUI.h"
 #include "ofMain.h"
 
 //#define USE_KINECT
+#define DEBUG_CONTROLER
 
 const ofColor TUMBLR_BACKGROUND(8, 77, 106);
 
@@ -36,13 +38,14 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
 		void gotMessage(ofMessage msg);
     void gifLoaded(ofxGifLoadedEvent &e);
     void newMidiMessage(ofxMidiMessage &msg);
+    void guiEvent(ofxUIEventArgs &e);
     
     bool goGlitch[17];
     
     ofFbo fbo;
     
     ofxSecondWindow projector;
-    ofxThreadedGIFLoader gifLoader;
+    ofxThreadedGifLoader gifLoader;
     ofxBpm bpm;
     ofxKinect kinect;
     ofEasyCam easyCam;
@@ -50,4 +53,5 @@ class ofApp : public ofBaseApp, public ofxMidiListener {
     ContentsManager cm;
     ofxMidiIn midiIn;
     ofxPostGlitch glitch;
+    ofxUICanvas *gui;
 };

@@ -29,14 +29,15 @@ void ofApp::setup(){
     
     // MIDI
     midiIn.listPorts();
-    midiIn.openPort("nanoKONTROL2 SLIDER/KNOB");
+    midiIn.openPort(0);
     midiIn.ignoreTypes(false, false, false);
     midiIn.addListener(this);
     midiIn.setVerbose(true);
     
     // Projector
-    projector.setup("Projector", -640, -20, 640, 480, true);
-    //projector.setup("Projector", 0, 0, 800, 800, true);
+    //projector.setup("Projector", -800, -20, 800, 628, true);
+    //projector.setup("Projector", -1280, -20, 1280, 788, true);
+    projector.setup("Projector", 0, 0, 800, 800, true);
     projector.begin();
     ofBackground(48, 77, 106);
     projector.end();
@@ -57,6 +58,14 @@ void ofApp::setup(){
     ofSetVerticalSync(true);
     ofSetFrameRate(60);
     ofBackground(48, 77, 106);
+    
+#ifdef DEBUG_CONTROLER
+    gui = new ofxUICanvas();
+    for (int i = 0; i < cm.getMaxContentsNum(); i++) {
+        gui->addSlider("slider"+ofToString(i), 0., 127., 0.);
+    }
+#endif
+    
 }
 
 //--------------------------------------------------------------
@@ -130,10 +139,14 @@ void ofApp::draw(){
         gc->drawBackyard(x*150+10, 600);
         x++;
     }
+    
+    glitch.generateFx();
+    fbo.draw(ofGetWidth()-200, 0, 200, 200*768/1024);
+    
     if (midiIn.isOpen()) {
         ofSetColor(0, 255, 0);
     } else ofSetColor(255, 0, 0);
-    ofRect(ofGetWidth()-20, 0, 20, 20);
+    ofRect(ofGetWidth()-20, ofGetHeight()-20, 20, 20);
 }
 
 void ofApp::drawPointCloud() {
@@ -199,6 +212,22 @@ void ofApp::keyPressed(int key){
 	if (key == 'e') goGlitch[OFXPOSTGLITCH_CR_BLUEINVERT] = !goGlitch[OFXPOSTGLITCH_CR_BLUEINVERT];
 	if (key == 't') goGlitch[OFXPOSTGLITCH_CR_REDINVERT] = !goGlitch[OFXPOSTGLITCH_CR_REDINVERT];
 	if (key == 'y') goGlitch[OFXPOSTGLITCH_CR_GREENINVERT] = !goGlitch[OFXPOSTGLITCH_CR_GREENINVERT];
+    
+    if (key == 'm') {
+        for (int i = 0; i < 17; i++) {
+            goGlitch[i] = false;
+        }
+    }
+    if (key == ',') {
+        printf("Reopening");
+        midiIn.closePort();
+        midiIn.removeListener(this);
+        midiIn.listPorts();
+        //midiIn.openPort("nanoKONTROL2 SLIDER/KNOB");
+        midiIn.openPort(0);
+        midiIn.addListener(this);
+
+    }
 }
 
 //--------------------------------------------------------------
@@ -243,17 +272,27 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 //--------------------------------------------------------------
 void ofApp::newMidiMessage(ofxMidiMessage &msg){
-    ofLogNotice("MIDI") << msg.control;
     if (msg.control >= 64 && msg.control <= 71 &&
         msg.control <= cm.getMaxContentsNum()+64 && msg.value > 0) { // pushed 'R' button
+    ofLogNotice("controlling lock") << msg.control;
         GifContent &gif = cm.gifs.at(msg.control-64);
         gif.isLocked = !gif.isLocked;
-    } else if (msg.control >= 0 && msg.control <= 7 &&
-               msg.control <= cm.getMaxContentsNum()) {
+    } else if (msg.control >= 0 && msg.control < 7 &&
+               msg.control < cm.getMaxContentsNum()) {
+    ofLogNotice("controlling gif") << msg.control;
         GifContent &gif = cm.gifs.at(msg.control);
         gif.value = msg.value;
     } else if (msg.control >= 16 && msg.control <= 23 &&
-               msg.control <= cm.getMaxContentsNum()+16) {
+               msg.control < (cm.getMaxContentsNum()+16)) {
+    ofLogNotice("controlling scale") << msg.control;
         cm.gifs.at(msg.control-16).displayScale = msg.value/127.0*2;
     }
+}
+
+//--------------------------------------------------------------
+void ofApp::guiEvent(ofxUIEventArgs &e) {
+    //auto result = find(e.getName().begin(), e.getName().end(), "slider");
+    //if (result != e.getName().end()) {
+    //    //
+    //}
 }
